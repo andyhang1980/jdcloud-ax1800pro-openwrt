@@ -82,7 +82,7 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          docker rmi $(docker images -q)
+          docker rmi $(docker images -q) 2>/dev/null || true
           sudo -E apt -yqq update
           sudo -E apt -yqq full-upgrade
           sudo -E apt -yqq autoremove --purge
@@ -135,11 +135,11 @@ jobs:
 
             echo "toolchain skiped done!"
           else
-            gh extension install actions/gh-actions-cache
+            gh extension install actions/gh-actions-cache || true
 
-            CACHE_LIST=$(gh actions-cache list --key "$WRT_TARGET-$WRT_VER" | cut -f 1)
+            CACHE_LIST=$(gh actions-cache list --key "$WRT_TARGET-$WRT_VER" | cut -f 1 || true)
             for CACHE_KEY in $CACHE_LIST; do
-               gh actions-cache delete $CACHE_KEY --confirm
+               gh actions-cache delete $CACHE_KEY --confirm || true
             done
 
             echo "caches cleanup done!"
