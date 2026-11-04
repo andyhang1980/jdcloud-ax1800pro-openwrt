@@ -62,7 +62,6 @@ UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
 UPDATE_PACKAGE "passwall" "xiaorouji/openwrt-passwall" "main" "pkg"
 UPDATE_PACKAGE "ssr-plus" "fw876/helloworld" "master"
 
-UPDATE_PACKAGE "alist" "sbwml/luci-app-alist" "main"
 UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5"
 UPDATE_PACKAGE "vnt" "lazyoop/networking-artifact" "main" "pkg"
 UPDATE_PACKAGE "easytier" "lazyoop/networking-artifact" "main" "pkg"
@@ -80,19 +79,9 @@ UPDATE_PACKAGE "wolplus" "siwind/luci-app-wolplus" "main"
 # rm -rf ./.clone-golang
 # ... (原替换逻辑已停用)
 
-# 下载最新版alist（克隆成功后再落地）
-rm -rf ./.clone-alist
-for i in 1 2 3 4 5; do
-	if git clone --depth=1 --single-branch --branch main "https://x-access-token:${GITHUB_TOKEN}@github.com/sbwml/luci-app-alist.git" ./.clone-alist 2>/dev/null; then
-		rm -rf ./alist
-		mv -f ./.clone-alist ./alist
-		echo "updated: alist <= sbwml/luci-app-alist"
-		break
-	fi
-	echo "alist clone retry $i/5"
-	sleep $((i * 5))
-done
-[ -d ./.clone-alist ] && { echo "WARN: alist clone failed, skip"; rm -rf ./.clone-alist; }
+# alist 直接克隆已停用：cgofuse 编译需要 fuse.h，交叉编译下头文件/标签都对不上（run6 失败原因）
+# rm -rf ./.clone-alist
+# ...
 
 if [[ $WRT_REPO != *"immortalwrt"* ]]; then
 	UPDATE_PACKAGE "qmi-wwan" "immortalwrt/wwan-packages" "master" "pkg"

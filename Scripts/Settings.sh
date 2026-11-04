@@ -48,8 +48,8 @@ echo "CONFIG_PACKAGE_openssh-sftp-server=y" >> ./.config
 echo "CONFIG_PACKAGE_jq=y" >> ./.config
 # 简单明了的系统资源占用查看工具
 echo "CONFIG_PACKAGE_btop=y" >> ./.config
-# 多网盘存储
-echo "CONFIG_PACKAGE_luci-app-alist=y" >> ./.config
+# 多网盘存储 —— alist 暂时剔除：sbwml 版缺 libfuse 依赖，cgofuse 在交叉编译下 fuse.h 找不到
+# echo "CONFIG_PACKAGE_luci-app-alist=y" >> ./.config
 # 强大的工具(需要添加源或git clone)
 # echo "CONFIG_PACKAGE_luci-app-lucky=y" >> ./.config
 # 网络通信工具

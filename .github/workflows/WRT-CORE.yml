@@ -185,6 +185,18 @@ jobs:
 
           make -j$(nproc) || make -j1 V=s
 
+      # 编译失败也把工具链/ccache 存下来，下轮直接复用（已存在则跳过）
+      - name: Save Toolchain Cache
+        if: always() && env.WRT_TEST != 'true'
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          key: ${{env.WRT_TARGET}}-${{env.WRT_VER}}-${{env.WRT_HASH}}
+          path: |
+            ./wrt/.ccache
+            ./wrt/staging_dir/host*
+            ./wrt/staging_dir/tool*
+
       - name: Machine Information
         run: |
           cd ./wrt/
