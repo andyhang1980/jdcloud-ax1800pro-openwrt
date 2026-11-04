@@ -2,7 +2,7 @@
 
 面向 **京东云无线宝 AX1800 Pro（代号「亚瑟」，型号 RE-SS-01，IPQ6000，512MB 内存，64GB eMMC）** 的 GitHub Actions 云编译工程。
 
-- 源码：`VIKINGYFY/immortalwrt`（main 分支），高通闭源 QCA WiFi 驱动版（`IPQ60XX-WIFI-YES`）
+- 源码：`VIKINGYFY/immortalwrt`（`owrt` 分支，上游活跃分支），高通闭源 QCA WiFi 驱动版（`IPQ60XX-WIFI-YES`）
 - 目标设备：`qualcommax/ipq60xx/jdcloud_re-ss-01`（只编译这一个设备）
 - 默认 LAN：`192.168.68.1`（与京东云原厂/QWRT 默认一致）
 - 默认主机名：`JDC-AX1800Pro`，默认主题：Argon + Kucat，中文 LuCI
