@@ -1,23 +1,48 @@
 #!/bin/bash
 
 #安装和更新软件包
+# 克隆走 GITHUB_TOKEN 认证（避免 runner IP 被限流），带重试；
+# 只有克隆成功才移除 feed 旧版本 —— 克隆失败时自动回退用 feed 里的版本
 UPDATE_PACKAGE() {
 	local PKG_NAME=$1
 	local PKG_REPO=$2
 	local PKG_BRANCH=$3
 	local PKG_SPECIAL=$4
 	local REPO_NAME=$(echo $PKG_REPO | cut -d '/' -f 2)
+	local CLONE_DIR="./.clone-$REPO_NAME"
+	local AUTH_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${PKG_REPO}.git"
 
-	rm -rf $(find ../feeds/luci/ ../feeds/packages/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune)
+	rm -rf "$CLONE_DIR"
 
-	git clone --depth=1 --single-branch --branch $PKG_BRANCH "https://github.com/$PKG_REPO.git"
+	local OK=0
+	for i in 1 2 3 4 5; do
+		if git clone --depth=1 --single-branch --branch "$PKG_BRANCH" "$AUTH_URL" "$CLONE_DIR" 2>/dev/null; then
+			OK=1
+			break
+		fi
+		echo "clone retry $i/5: $PKG_REPO@$PKG_BRANCH"
+		sleep $((i * 5))
+	done
+
+	if [ "$OK" != "1" ]; then
+		echo "WARN: clone failed for $PKG_REPO@$PKG_BRANCH, keep feed version of *$PKG_NAME*"
+		rm -rf "$CLONE_DIR"
+		return 1
+	fi
+
+	# 克隆成功，移除 feed 里的旧版本
+	rm -rf $(find ../feeds/luci/ ../feeds/packages/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune) 2>/dev/null || true
 
 	if [[ $PKG_SPECIAL == "pkg" ]]; then
-		cp -rf $(find ./$REPO_NAME/*/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune) ./
-		rm -rf ./$REPO_NAME/
+		cp -rf $(find "$CLONE_DIR"/*/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune) ./
+		rm -rf "$CLONE_DIR"
 	elif [[ $PKG_SPECIAL == "name" ]]; then
-		mv -f $REPO_NAME $PKG_NAME
+		mv -f "$CLONE_DIR" "$PKG_NAME"
+	else
+		mv -f "$CLONE_DIR" "$REPO_NAME"
 	fi
+
+	echo "updated: $PKG_NAME <= $PKG_REPO@$PKG_BRANCH"
 }
 
 #UPDATE_PACKAGE "包名" "项目地址" "项目分支" "pkg/name，可选，pkg为从大杂烩中单独提取包名插件；name为重命名为包名"
@@ -25,9 +50,12 @@ UPDATE_PACKAGE() {
 # 使用原版官方的
 # UPDATE_PACKAGE "argon" "jerrykuku/luci-theme-argon" "master"
 
-UPDATE_PACKAGE "kucat" "sirpdboy/luci-theme-kucat" "js"
+# 主题 kucat：上游原来的 js 分支已删除，只剩 master
+UPDATE_PACKAGE "kucat" "sirpdboy/luci-theme-kucat" "master"
 
-UPDATE_PACKAGE "homeproxy" "VIKINGYFY/homeproxy" "main"
+# homeproxy：VIKINGYFY/homeproxy 已被删除，feed（immortalwrt/luci）自带 luci-app-homeproxy，不再覆盖
+# UPDATE_PACKAGE "homeproxy" "VIKINGYFY/homeproxy" "main"
+
 UPDATE_PACKAGE "mihomo" "morytyann/OpenWrt-mihomo" "main"
 UPDATE_PACKAGE "nekoclash" "Thaolga/luci-app-nekoclash" "main"
 UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
@@ -42,16 +70,38 @@ UPDATE_PACKAGE "easytier" "lazyoop/networking-artifact" "main" "pkg"
 # 不兼容官方argon
 # UPDATE_PACKAGE "luci-app-advancedplus" "VIKINGYFY/packages" "main" "pkg"
 
-UPDATE_PACKAGE "luci-app-gecoosac" "lwb1978/openwrt-gecoosac" "main"
-UPDATE_PACKAGE "luci-app-tailscale" "asvow/luci-app-tailscale" "main"
-UPDATE_PACKAGE "luci-app-wolplus" "VIKINGYFY/packages" "main" "pkg"
+UPDATE_PACKAGE "gecoosac" "lwb1978/openwrt-gecoosac" "main"
+UPDATE_PACKAGE "tailscale" "asvow/luci-app-tailscale" "main"
+# wolplus：VIKINGYFY/packages 里已无 wolplus，改用 siwind 的独立仓库（仓库根即插件目录）
+UPDATE_PACKAGE "wolplus" "siwind/luci-app-wolplus" "main"
 
-# 替换成最新版的golang
-rm -rf feeds/packages/lang/golang
-git clone https://github.com/sbwml/packages_lang_golang -b 22.x feeds/packages/lang/golang
+# 替换成最新版的golang（克隆成功后再删 feed 版本，失败则保留 feed 的）
+rm -rf ./.clone-golang
+for i in 1 2 3 4 5; do
+	if git clone --depth=1 --single-branch --branch 22.x "https://x-access-token:${GITHUB_TOKEN}@github.com/sbwml/packages_lang_golang.git" ./.clone-golang 2>/dev/null; then
+		rm -rf ../feeds/packages/lang/golang
+		mv -f ./.clone-golang ../feeds/packages/lang/golang
+		echo "updated: golang <= sbwml/packages_lang_golang@22.x"
+		break
+	fi
+	echo "golang clone retry $i/5"
+	sleep $((i * 5))
+done
+[ -d ./.clone-golang ] && { echo "WARN: golang clone failed, keep feed golang"; rm -rf ./.clone-golang; }
 
-# 下载最新版alist
-git clone https://github.com/sbwml/luci-app-alist package/alist
+# 下载最新版alist（克隆成功后再落地）
+rm -rf ./.clone-alist
+for i in 1 2 3 4 5; do
+	if git clone --depth=1 --single-branch --branch main "https://x-access-token:${GITHUB_TOKEN}@github.com/sbwml/luci-app-alist.git" ./.clone-alist 2>/dev/null; then
+		rm -rf ./alist
+		mv -f ./.clone-alist ./alist
+		echo "updated: alist <= sbwml/luci-app-alist"
+		break
+	fi
+	echo "alist clone retry $i/5"
+	sleep $((i * 5))
+done
+[ -d ./.clone-alist ] && { echo "WARN: alist clone failed, skip"; rm -rf ./.clone-alist; }
 
 if [[ $WRT_REPO != *"immortalwrt"* ]]; then
 	UPDATE_PACKAGE "qmi-wwan" "immortalwrt/wwan-packages" "master" "pkg"
@@ -74,9 +124,9 @@ UPDATE_VERSION() {
 
 	for PKG_FILE in $PKG_FILES; do
 		local PKG_REPO=$(grep -Pho 'PKG_SOURCE_URL:=https://.*github.com/\K[^/]+/[^/]+(?=.*)' $PKG_FILE | head -n 1)
-		local PKG_VER=$(curl -sL "https://api.github.com/repos/$PKG_REPO/releases" | jq -r "map(select(.prerelease|$PKG_MARK)) | first | .tag_name")
+		local PKG_VER=$(curl -sL -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$PKG_REPO/releases" | jq -r "map(select(.prerelease|$PKG_MARK)) | first | .tag_name")
 		local NEW_VER=$(echo $PKG_VER | sed "s/.*v//g; s/_/./g")
-		local NEW_HASH=$(curl -sL "https://codeload.github.com/$PKG_REPO/tar.gz/$PKG_VER" | sha256sum | cut -b -64)
+		local NEW_HASH=$(curl -sL -H "Authorization: Bearer $GITHUB_TOKEN" "https://codeload.github.com/$PKG_REPO/tar.gz/$PKG_VER" | sha256sum | cut -b -64)
 		local OLD_VER=$(grep -Po "PKG_VERSION:=\K.*" "$PKG_FILE")
 
 		echo "$OLD_VER $PKG_VER $NEW_VER $NEW_HASH"

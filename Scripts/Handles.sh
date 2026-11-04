@@ -10,6 +10,7 @@ if [ -d *"homeproxy"* ]; then
 	chmod +x ./$HP_PATCH/scripts/*
 	rm -rf ./$HP_PATCH/resources/*
 
+	git clone -q --depth=1 --single-branch --branch "release" "https://x-access-token:${GITHUB_TOKEN}@github.com/Loyalsoldier/surge-rules.git" ./$HP_RULES/ || \
 	git clone -q --depth=1 --single-branch --branch "release" "https://github.com/Loyalsoldier/surge-rules.git" ./$HP_RULES/
 	cd ./$HP_RULES/ && RES_VER=$(git log -1 --pretty=format:'%s' | grep -o "[0-9]*")
 
@@ -39,15 +40,17 @@ if [ -d *"openclash"* ]; then
 
 	cd ./luci-app-openclash/root/etc/openclash/
 
-	curl -sL -o Country.mmdb $GEO_MMDB && echo "Country.mmdb done!"
-	curl -sL -o GeoSite.dat $GEO_SITE && echo "GeoSite.dat done!"
-	curl -sL -o GeoIP.dat $GEO_IP && echo "GeoIP.dat done!"
+	CURL="curl -fsSL --retry 5 --retry-delay 3"
+
+	$CURL -o Country.mmdb $GEO_MMDB && echo "Country.mmdb done!" || echo "WARN: Country.mmdb failed"
+	$CURL -o GeoSite.dat $GEO_SITE && echo "GeoSite.dat done!" || echo "WARN: GeoSite.dat failed"
+	$CURL -o GeoIP.dat $GEO_IP && echo "GeoIP.dat done!" || echo "WARN: GeoIP.dat failed"
 
 	mkdir ./core/ && cd ./core/
 
-	curl -sL -o meta.tar.gz $CORE_MATE && tar -zxf meta.tar.gz && mv -f clash clash_meta && echo "meta done!"
-	curl -sL -o tun.gz $CORE_TUN && gzip -d tun.gz && mv -f tun clash_tun && echo "tun done!"
-	curl -sL -o dev.tar.gz $CORE_DEV && tar -zxf dev.tar.gz && echo "dev done!"
+	$CURL -o meta.tar.gz $CORE_MATE && tar -zxf meta.tar.gz && mv -f clash clash_meta && echo "meta done!" || echo "WARN: meta core failed"
+	$CURL -o tun.gz $CORE_TUN && gzip -d tun.gz && mv -f tun clash_tun && echo "tun done!" || echo "WARN: tun core failed"
+	$CURL -o dev.tar.gz $CORE_DEV && tar -zxf dev.tar.gz && echo "dev done!" || echo "WARN: dev core failed"
 
 	chmod +x ./* && rm -rf ./*.gz
 
