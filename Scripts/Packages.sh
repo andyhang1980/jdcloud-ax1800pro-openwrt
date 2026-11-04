@@ -75,19 +75,10 @@ UPDATE_PACKAGE "tailscale" "asvow/luci-app-tailscale" "main"
 # wolplus：VIKINGYFY/packages 里已无 wolplus，改用 siwind 的独立仓库（仓库根即插件目录）
 UPDATE_PACKAGE "wolplus" "siwind/luci-app-wolplus" "main"
 
-# 替换成最新版的golang（克隆成功后再删 feed 版本，失败则保留 feed 的）
-rm -rf ./.clone-golang
-for i in 1 2 3 4 5; do
-	if git clone --depth=1 --single-branch --branch 22.x "https://x-access-token:${GITHUB_TOKEN}@github.com/sbwml/packages_lang_golang.git" ./.clone-golang 2>/dev/null; then
-		rm -rf ../feeds/packages/lang/golang
-		mv -f ./.clone-golang ../feeds/packages/lang/golang
-		echo "updated: golang <= sbwml/packages_lang_golang@22.x"
-		break
-	fi
-	echo "golang clone retry $i/5"
-	sleep $((i * 5))
-done
-[ -d ./.clone-golang ] && { echo "WARN: golang clone failed, keep feed golang"; rm -rf ./.clone-golang; }
+# golang：不再覆盖 —— 上游换的 sbwml 22.x 是 Go 1.22，编不过 feed 里 runc>=1.23 的要求，
+# feed 自带 golang 与其 runc 版本是配套的，直接用 feed 的
+# rm -rf ./.clone-golang
+# ... (原替换逻辑已停用)
 
 # 下载最新版alist（克隆成功后再落地）
 rm -rf ./.clone-alist
