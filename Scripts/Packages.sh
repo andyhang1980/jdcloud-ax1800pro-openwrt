@@ -70,7 +70,8 @@ UPDATE_PACKAGE "easytier" "lazyoop/networking-artifact" "main" "pkg"
 # UPDATE_PACKAGE "luci-app-advancedplus" "VIKINGYFY/packages" "main" "pkg"
 
 UPDATE_PACKAGE "gecoosac" "lwb1978/openwrt-gecoosac" "main"
-UPDATE_PACKAGE "tailscale" "asvow/luci-app-tailscale" "main"
+# tailscale 停用：feed 里没有 tailscale 二进制包，luci-app-tailscale 依赖解析失败（run7）
+# UPDATE_PACKAGE "tailscale" "asvow/luci-app-tailscale" "main"
 # wolplus：VIKINGYFY/packages 里已无 wolplus，改用 siwind 的独立仓库（仓库根即插件目录）
 UPDATE_PACKAGE "wolplus" "siwind/luci-app-wolplus" "main"
 

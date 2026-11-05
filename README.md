@@ -55,7 +55,7 @@ Scripts/Handles.sh              # 预置规则数据（homeproxy 规则、OpenCl
 
 - 科学上网：homeproxy（含预置规则）、passwall、openclash（含内核）、ssr-plus、mihomo/nekoclash
 - 网络：smartdns、adguardhome、turboacc + BBR、kmod-tun、XDP/BPF 全套、NFS、samba4、aria2、docker（dockerman）（alist 因 cgofuse/fuse.h 交叉编译问题暂移除）
-- 运维：btop、jq、curl、htop、iperf3、openssh-sftp-server、autoreboot、WOL（wolplus）、tailscale、kucat 主题
+- 运维：btop、jq、curl、htop、iperf3、openssh-sftp-server、autoreboot、WOL（wolplus）、kucat 主题（tailscale 因依赖无法解析暂移除）
 - 内核模块：fuse、tun、wireguard kmod、mtd-rw、全套 USB 网卡/存储驱动（USB3 移动硬盘可用）
 - 已剔除：wol、ddns、vlmcsd、xlnetacc、zerotier、luci-app-wireguard、ipsec-vpnd、adbyby-plus、filetransfer、unblockmusic、accesscontrol、fileassistant
 
