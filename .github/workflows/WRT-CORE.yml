@@ -175,18 +175,6 @@ jobs:
 
           make defconfig -j$(nproc)
 
-          # 上游 defconfig 会生成 CONFIG_OVERRIDE_PKGS 强制源码覆盖列表，里面
-          # naiveproxy -> libcronet(Chromium, -j1 编 4963 个目标 ~1.5h)
-          # shadowsocks-rust / tuic-client -> rust host(bootstrap 极慢 + AF_UNIX 报错)
-          # 这些包我们的配置根本没启用，清空列表并显式关掉，省 2 小时以上
-          sed -i 's|^CONFIG_OVERRIDE_PKGS=.*|CONFIG_OVERRIDE_PKGS=""|' .config
-          for p in libcronet naiveproxy shadowsocks-rust tuic-client v2raya hysteria gn; do
-            echo "CONFIG_PACKAGE_$p=n" >> .config
-          done
-
-          echo "--- override pkgs ---"
-          grep '^CONFIG_OVERRIDE_PKGS=' .config || true
-
       - name: Download Packages
         if: env.WRT_TEST != 'true'
         run: |
