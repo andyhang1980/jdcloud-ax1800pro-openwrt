@@ -187,6 +187,16 @@ jobs:
         run: |
           cd ./wrt/
 
+          # Python 3.14 把 multiprocessing 默认 start method 改成了 forkserver，
+          # 它要建 AF_UNIX socket；OpenWrt host python 的临时目录在超长的
+          # runner 工作目录下，路径超过 108 字节 -> rustc 的 x.py 必炸。
+          # 用 sitecustomize 把默认 start method 强制成 fork（不建 socket）。
+          # 只影响 Python 进程启动方式，不改包集合、不动 .config、不破坏 metadata。
+          mkdir -p /tmp/pyfix
+          printf 'import multiprocessing\ntry:\n    multiprocessing.set_start_method("fork", force=True)\nexcept Exception:\n    pass\n' > /tmp/pyfix/sitecustomize.py
+          export PYTHONPATH="/tmp/pyfix${PYTHONPATH:+:$PYTHONPATH}"
+          python3 -c "import multiprocessing,sys; print('pyfix active, start method:', multiprocessing.get_start_method(), 'python:', sys.version.split()[0])"
+
           make -j$(nproc) || make -j1 V=s
 
       # 编译失败也把工具链/ccache 存下来，下轮直接复用（已存在则跳过）
