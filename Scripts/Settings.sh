@@ -28,9 +28,9 @@ fi
 
 #高通平台调整
 if [[ $WRT_TARGET == *"IPQ"* ]]; then
-	#取消nss相关feed
-	echo "CONFIG_FEED_nss_packages=n" >> ./.config
-	echo "CONFIG_FEED_sqm_scripts_nss=n" >> ./.config
+	# LiBwrt 25.12-nss 自带 nss feed，不禁用
+	echo "CONFIG_FEED_nss_packages=y" >> ./.config
+	echo "CONFIG_FEED_sqm_scripts_nss=y" >> ./.config
 fi
 
 # 想要剔除的
