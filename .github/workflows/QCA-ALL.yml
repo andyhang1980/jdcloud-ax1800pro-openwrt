@@ -39,12 +39,12 @@ jobs:
       WRT_TARGET: ${{matrix.TARGET}}
       #默认主题
       WRT_THEME: argon
-      #默认主机名
-      WRT_NAME: JDC-AX1800Pro
+      #默认主机名（品牌统一为 QWRT）
+      WRT_NAME: QWRT
       #默认WIFI名
-      WRT_WIFI: JDC-AX1800Pro
-      #默认地址（与京东云/QWRT 原默认保持一致）
-      WRT_IP: 192.168.68.1
+      WRT_WIFI: QWRT
+      #默认地址（QWRT 原默认）
+      WRT_IP: 192.168.1.1
       #默认密码，仅作提示，修改无用
       WRT_PW: 无
       #源码链接

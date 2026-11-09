@@ -101,7 +101,7 @@ jobs:
         run: |
           export WRT_DATE=$(TZ=UTC-8 date +"%y.%m.%d_%H.%M.%S")
           export WRT_CI=$(basename $GITHUB_WORKSPACE)
-          export WRT_VER=$(echo $WRT_REPO | cut -d '/' -f 5-)-$WRT_BRANCH
+          export WRT_VER="QWRT-$WRT_BRANCH"
           export WRT_TYPE=$(sed -n "1{s/^#//;s/\r$//;p;q}" $GITHUB_WORKSPACE/Config/$WRT_TARGET.txt)
 
           echo "WRT_DATE=$WRT_DATE" >> $GITHUB_ENV
@@ -155,6 +155,12 @@ jobs:
 
           ./scripts/feeds update -a
           ./scripts/feeds install -a
+
+      - name: Custom Brand & Wwan
+        run: |
+          cd ./wrt/
+          $GITHUB_WORKSPACE/Scripts/Brand.sh ./
+          $GITHUB_WORKSPACE/Scripts/Wwan.sh ./
 
       - name: Custom Packages
         run: |

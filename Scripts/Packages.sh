@@ -34,7 +34,9 @@ UPDATE_PACKAGE() {
 	rm -rf $(find ../feeds/luci/ ../feeds/packages/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune) 2>/dev/null || true
 
 	if [[ $PKG_SPECIAL == "pkg" ]]; then
-		cp -rf $(find "$CLONE_DIR"/*/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune) ./
+		SRC=$(find "$CLONE_DIR"/*/ -maxdepth 3 -type d -iname "*$PKG_NAME*" -prune | head -1)
+		[ -z "$SRC" ] && { echo "WARN: '$PKG_NAME' not found inside $PKG_REPO, skip"; rm -rf "$CLONE_DIR"; return 1; }
+		cp -rf "$SRC" ./
 		rm -rf "$CLONE_DIR"
 	elif [[ $PKG_SPECIAL == "name" ]]; then
 		mv -f "$CLONE_DIR" "$PKG_NAME"
@@ -84,9 +86,10 @@ UPDATE_PACKAGE "wolplus" "siwind/luci-app-wolplus" "main"
 # rm -rf ./.clone-alist
 # ...
 
-if [[ $WRT_REPO != *"immortalwrt"* ]]; then
-	UPDATE_PACKAGE "qmi-wwan" "immortalwrt/wwan-packages" "master" "pkg"
-fi
+# qmi-wwan（wwan-packages 里的 QMI 用户态 + netifd qmi 协议后端）与 3ginfo-lite（3G/4G 信息页）
+# 上游条件 `WRT_REPO != *"immortalwrt"*` 在本仓库恒为假（WRT_REPO 含 immortalwrt），一直跳过，这里无条件拉取
+UPDATE_PACKAGE "qmi-wwan" "immortalwrt/wwan-packages" "master" "pkg"
+UPDATE_PACKAGE "3ginfo-lite" "immortalwrt/wwan-packages" "master" "pkg"
 
 #更新软件包版本
 UPDATE_VERSION() {
