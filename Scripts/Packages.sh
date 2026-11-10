@@ -75,6 +75,10 @@ UPDATE_PACKAGE "passwall" "xiaorouji/openwrt-passwall" "main" "pkg"
 UPDATE_PACKAGE "ssr-plus" "fw876/helloworld" "master"
 
 UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5"
+
+# NSS 硬件加速状态页（菜单：状态 → NSS Status，读 ECM/qca-nss-drv 的 debugfs）
+# 注意：该仓库根目录就是包目录（Makefile 在根），必须用 name 模式整仓改名
+UPDATE_PACKAGE "luci-app-nssstatus" "shadowvershh/luci-app-nssstatus" "main" "name"
 UPDATE_PACKAGE "vnt" "lazyoop/networking-artifact" "main" "pkg"
 UPDATE_PACKAGE "easytier" "lazyoop/networking-artifact" "main" "pkg"
 

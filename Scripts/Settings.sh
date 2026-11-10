@@ -79,8 +79,9 @@ echo "CONFIG_PACKAGE_nfs-utils=y" >> ./.config
 echo "CONFIG_PACKAGE_nfs-utils-libs=y" >> ./.config
 echo "CONFIG_PACKAGE_luci-app-nfs=y" >> ./.config
 
-echo "CONFIG_PACKAGE_smartdns=y" >> ./.config
-echo "CONFIG_PACKAGE_luci-app-smartdns=y" >> ./.config
+# DNS：SmartDNS 换成 mosdns（菜单：服务 → mosdns）
+echo "CONFIG_PACKAGE_mosdns=y" >> ./.config
+echo "CONFIG_PACKAGE_luci-app-mosdns=y" >> ./.config
 
 echo "CONFIG_PACKAGE_adguardhome=y" >> ./.config
 

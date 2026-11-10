@@ -43,11 +43,24 @@ CONFIG_PACKAGE_nss-userspace-oss=y
 CONFIG_PACKAGE_nss-ifb=y
 CONFIG_PACKAGE_qca-nss-cfi=y
 CONFIG_PACKAGE_qca-nss-macsec=y
+# 高通 NSS 硬件加速状态页（菜单：状态 → NSS Status，读 ECM/nss-drv 实时数据）
+CONFIG_PACKAGE_luci-app-nssstatus=y
+# SQM 智能限速（sqm-scripts-nss 用 NSS 硬件做队列，不占 CPU）
+CONFIG_PACKAGE_luci-app-sqm=y
+CONFIG_PACKAGE_sqm-scripts-nss=y
+# 流量统计（菜单：状态 → 流量统计）
+CONFIG_PACKAGE_luci-app-nlbwmon=y
+CONFIG_PACKAGE_nlbwmon=y
+# DNS：SmartDNS 已换成 mosdns（Settings.sh 同步改了强制项）
+CONFIG_PACKAGE_mosdns=y
+CONFIG_PACKAGE_luci-app-mosdns=y
+# 关掉 passwall 自带的 SmartDNS 组件，否则 smartdns 二进制还会被拉回来
+CONFIG_PACKAGE_luci-app-passwall_INCLUDE_SmartDNS=n
 # tailscale 剔除：immortalwrt feed 无 tailscale 二进制包，luci-app-tailscale 依赖无法解析（run7 组装阶段失败）
 # CONFIG_PACKAGE_luci-app-tailscale=y
 CONFIG_PACKAGE_luci-app-autoreboot=y
 CONFIG_PACKAGE_luci-app-advancedplus=y
-# 主题换原版 bootstrap，移除 kucat
+# 默认主题为 design（Lean 版，带 ucode 模板），kucat/bootstrap 不再启用
 #删除插件
 CONFIG_PACKAGE_luci-app-wol=n
 CONFIG_PACKAGE_luci-app-ddns=n
