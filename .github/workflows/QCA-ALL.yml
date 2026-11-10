@@ -37,8 +37,8 @@ jobs:
     with:
       #编译平台
       WRT_TARGET: ${{matrix.TARGET}}
-      #默认主题（原版 bootstrap）
-      WRT_THEME: bootstrap
+      #默认主题（design：Lean 版，带 ucode 模板）
+      WRT_THEME: design
       #默认主机名（品牌统一为 QWRT）
       WRT_NAME: QWRT
       #默认WIFI名

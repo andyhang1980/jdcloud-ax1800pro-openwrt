@@ -55,6 +55,16 @@ UPDATE_PACKAGE() {
 # 主题 kucat：上游原来的 js 分支已删除，只剩 master
 UPDATE_PACKAGE "kucat" "sirpdboy/luci-theme-kucat" "master"
 
+# design 主题：从 Lean 的 luci 分支取（自带 ucode 模板，适配 25.12 新版 LuCI）
+# 仓库根是 luci 单体仓库，只提取 themes/luci-theme-design 一个目录
+UPDATE_PACKAGE "luci-theme-design" "coolsnowwolf/luci" "openwrt-25.12" "pkg"
+# 原 Makefile 写的是 `include ../../luci.mk`（相对 luci 仓库根），
+# 拷到 package/ 后相对路径失效，改指 feeds 里的 luci.mk
+if [ -f ./luci-theme-design/Makefile ]; then
+	sed -i 's|include \.\./\.\./luci.mk|include $(TOPDIR)/feeds/luci/luci.mk|' ./luci-theme-design/Makefile
+	echo "luci-theme-design: include path fixed"
+fi
+
 # homeproxy：VIKINGYFY/homeproxy 已被删除，feed（immortalwrt/luci）自带 luci-app-homeproxy，不再覆盖
 # UPDATE_PACKAGE "homeproxy" "VIKINGYFY/homeproxy" "main"
 

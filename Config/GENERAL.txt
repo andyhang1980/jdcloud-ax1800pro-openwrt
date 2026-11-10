@@ -3,6 +3,8 @@ CONFIG_PACKAGE_luci-app-homeproxy=y
 #增加插件
 CONFIG_PACKAGE_luci-app-samba4=y
 CONFIG_PACKAGE_luci-app-wolplus=y
+# design 主题（Lean 版，带 ucode 模板；Packages.sh 从 coolsnowwolf/luci 提取）
+CONFIG_PACKAGE_luci-theme-design=y
 # SSR Plus：Packages.sh 已从 fw876/helloworld 拉源，这里显式启用
 CONFIG_PACKAGE_luci-app-ssr-plus=y
 # 防 OOM：zram 压缩交换（当前固件 Swap=0、无 zram 模块，必须重编译才有）
