@@ -9,6 +9,30 @@ sed -i "s/(\(luciversion || ''\))/(\1) + (' \/ $WRT_CI-$WRT_DATE')/g" $(find ./f
 #修改默认WIFI名
 sed -i "s/\.ssid=.*/\.ssid=$WRT_WIFI/g" $(find ./package/kernel/mac80211/ ./package/network/config/ -type f -name "mac80211.*")
 
+# 默认 WiFi 规格（首启 uci-defaults 落地）：2.4G=QWRT2.4G，5G=QWRT5G，WPA2 加密，密码 12345678
+mkdir -p ./package/base-files/files/etc/uci-defaults
+cat > ./package/base-files/files/etc/uci-defaults/99-wifi-defaults << 'WIFIEOF'
+#!/bin/sh
+[ -f /etc/config/wireless ] || wifi config >/dev/null 2>&1
+n=0
+while uci -q get "wireless.@wifi-iface[$n]" >/dev/null 2>&1; do
+	dev=$(uci -q get "wireless.@wifi-iface[$n].device")
+	band=$(uci -q get "wireless.$dev.band")
+	case "$band" in
+		2g) ssid="QWRT2.4G" ;;
+		5g) ssid="QWRT5G" ;;
+		*)  ssid="QWRT" ;;
+	esac
+	uci -q set "wireless.@wifi-iface[$n].ssid=$ssid"
+	uci -q set "wireless.@wifi-iface[$n].encryption=psk2"
+	uci -q set "wireless.@wifi-iface[$n].key=12345678"
+	n=$((n+1))
+done
+uci -q commit wireless
+exit 0
+WIFIEOF
+echo "wifi defaults: QWRT2.4G/QWRT5G psk2 12345678"
+
 CFG_FILE="./package/base-files/files/bin/config_generate"
 #修改默认IP地址
 sed -i "s/192\.168\.[0-9]*\.[0-9]*/$WRT_IP/g" $CFG_FILE

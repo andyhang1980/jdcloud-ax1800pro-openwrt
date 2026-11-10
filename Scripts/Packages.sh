@@ -74,6 +74,23 @@ UPDATE_PACKAGE "openclash" "vernesong/OpenClash" "dev" "pkg"
 UPDATE_PACKAGE "passwall" "xiaorouji/openwrt-passwall" "main" "pkg"
 UPDATE_PACKAGE "ssr-plus" "fw876/helloworld" "master"
 
+# SSR Plus 导入改成模态弹窗（原生 prompt() 太丑，参考 homeproxy 的导入分享链接）
+SSR_DIR=$(find ./ -maxdepth 4 -type d -name 'luci-app-ssr-plus' | head -1)
+SSR_PATCH="$GITHUB_WORKSPACE/Scripts/patches/ssrplus-ssrurl-modal.htm"
+if [ -n "$SSR_DIR" ] && [ -f "$SSR_PATCH" ] && [ -f "$SSR_DIR/luasrc/view/shadowsocksr/ssrurl.htm" ]; then
+	cp -f "$SSR_PATCH" "$SSR_DIR/luasrc/view/shadowsocksr/ssrurl.htm"
+	echo "ssr-plus: import modal applied"
+fi
+
+# TurboACC 加速设置页（chenmozhijin 的 firewall4 版；状态页会识别 QCA-NSS-ECM）
+UPDATE_PACKAGE "turboacc" "chenmozhijin/turboacc" "luci" "pkg"
+# 默认关掉软件/硬件/SFE 流分载 —— 硬件加速由 NSS ECM 负责，避免双加速冲突；保留 BBR + FullCone
+TC_CFG="./luci-app-turboacc/root/etc/config/turboacc"
+if [ -f "$TC_CFG" ]; then
+	sed -i "s/option sw_flow '1'/option sw_flow '0'/; s/option hw_flow '1'/option hw_flow '0'/; s/option sfe_flow '1'/option sfe_flow '0'/" "$TC_CFG"
+	echo "turboacc: sw/hw/sfe flow off by default (NSS ECM owns offload)"
+fi
+
 UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5"
 
 # NSS 硬件加速状态页（菜单：状态 → NSS Status，读 ECM/qca-nss-drv 的 debugfs）

@@ -75,3 +75,14 @@ if [ -f "$SP_FILE" ]; then
 
 	cd $PKG_PATCH && echo "ssr-plus has been fixed!"
 fi
+
+# CBI 表单改动自动"保存并应用"（WRT 定制：改完即生效，右上角不再挂着"未保存"等手动点）
+AA_JS="$GITHUB_WORKSPACE/Scripts/patches/auto-apply.js"
+CBJS=$(find ./feeds/luci -path '*luci-base/htdocs/luci-static/resources/cbi.js' 2>/dev/null | head -1)
+if [ -f "$AA_JS" ] && [ -n "$CBJS" ] && [ -f "$CBJS" ]; then
+	if ! grep -q '__wrtAutoApply' "$CBJS"; then
+		printf '\n' >> "$CBJS"
+		cat "$AA_JS" >> "$CBJS"
+		echo "auto-apply: injected into $CBJS"
+	fi
+fi
