@@ -60,6 +60,28 @@ touch /etc/wrt-menu-order.done
 exit 0
 MENUEOF
 echo "menu order: services reordered, dockerman renamed to Docker"
+# 品牌统一：去掉 LibWrt 痕迹，全部替换为 QWRT（os-release / device_info / uhttpd 证书 CN）
+cat > ./package/base-files/files/etc/uci-defaults/96-brand-release << 'BRANDEOF'
+#!/bin/sh
+[ -f /etc/wrt-brand.done ] && exit 0
+OSR=/usr/lib/os-release
+[ -f "$OSR" ] && sed -i 's/LibWrt/QWRT/g; s/^ID=.*/ID="qwrt"/' "$OSR"
+[ -f /etc/device_info ] && sed -i 's/LibWrt/QWRT/g' /etc/device_info
+if [ -f /etc/config/uhttpd ]; then
+	sed -i "s/option commonname 'LibWrt'/option commonname 'QWRT'/" /etc/config/uhttpd
+fi
+# 旧证书按旧 CN 生成，删掉让 uhttpd 用 QWRT 重新自签
+rm -f /etc/uhttpd.crt /etc/uhttpd.key
+/etc/init.d/uhttpd restart >/dev/null 2>&1
+touch /etc/wrt-brand.done
+exit 0
+BRANDEOF
+echo "brand: LibWrt -> QWRT (os-release/device_info/uhttpd CN)"
+
+# 构建树里能顺手改的直接改（找不到也不报错）
+for f in $(find ./package ./include -name 'os-release' -o -name 'version.mk' -o -name 'uhttpd.config' -o -name 'device_info' 2>/dev/null); do
+	sed -i 's/LibWrt/QWRT/g; s/libwrt/qwrt/g; s/LIBWRT/QWRT/g' "$f" 2>/dev/null
+done
 
 CFG_FILE="./package/base-files/files/bin/config_generate"
 #修改默认IP地址
