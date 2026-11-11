@@ -66,6 +66,13 @@ if [ -f ./luci-theme-design/Makefile ]; then
 fi
 
 # 主题 CSS 补丁：定时重启页 6 列+操作列超宽被裁剪 → 固定布局收缩
+# 主题 CSS 缓存破坏：把 header.ut 里的 style.css?v 加上构建时间戳，
+# 避免浏览器继续用 ?v= 未变化的旧缓存（改了样式“刷新了还是旧的”）。
+HUT=$(find ./luci-theme-design -name header.ut -path '*themes/design*' 2>/dev/null | head -n1)
+if [ -n "$HUT" ] && ! grep -q 'wrt[0-9][0-9]*' "$HUT"; then
+  sed -i "s|css/style.css?v={{ theme_rev }}|css/style.css?v={{ theme_rev }}-wrt$(date +%s)|" "$HUT"
+  echo "design header.ut: CSS cache-bust stamped -> $(grep -o 'style.css?v=[^"]*' "$HUT" | head -n1)"
+fi
 TCSS="./luci-theme-design/htdocs/luci-static/design/css/style.css"
 if [ -f "$TCSS" ] && ! grep -q 'WRT-AUTOREB' "$TCSS"; then
 	printf '\n' >> "$TCSS"
