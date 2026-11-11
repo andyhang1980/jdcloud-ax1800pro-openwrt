@@ -170,3 +170,16 @@
 		margin: 0 !important;
 	}
 }
+/* ---------- 网络 → 接口 / 设备列表：内容左对齐 ----------
+   原本 th 与 td 都是 text-align:center，加上“设备”列宽 451px，
+   内容被推到右侧，左侧一大片空白，看起来整表偏右。 */
+[data-page="admin-network-network"] table.cbi-section-table > thead > tr > th {
+	text-align: left !important;
+}
+[data-page="admin-network-network"] table.cbi-section-table > tbody > tr > td.cbi-value-field {
+	text-align: left !important;
+}
+/* 动作列保持右对齐 */
+[data-page="admin-network-network"] table.cbi-section-table > tbody > tr > td.cbi-section-table-cell {
+	text-align: right !important;
+}
