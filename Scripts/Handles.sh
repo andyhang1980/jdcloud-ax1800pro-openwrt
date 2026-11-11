@@ -86,3 +86,14 @@ if [ -f "$AA_JS" ] && [ -n "$CBJS" ] && [ -f "$CBJS" ]; then
 		echo "auto-apply: injected into $CBJS"
 	fi
 fi
+# Dockerman 概览页去掉「环境(Environment)」整块：它会把 docker info 全部字段原样列出，
+# 其中 Runtimes 是一大坨 JSON（数千字符）。视图已改好放在 Scripts/patches。
+DOV=$(find ../feeds/luci -path '*dockerman/overview.js' 2>/dev/null | head -n1)
+if [ -n "$DOV" ] && [ -f "$GITHUB_WORKSPACE/Scripts/patches/dockerman-overview-noenv.js" ]; then
+	if grep -q "TableSection,'ib'" "$DOV"; then
+		cp "$GITHUB_WORKSPACE/Scripts/patches/dockerman-overview-noenv.js" "$DOV"
+		echo "dockerman overview: Environment(Runtimes) section removed -> $DOV"
+	else
+		echo "dockerman overview: already patched"
+	fi
+fi
