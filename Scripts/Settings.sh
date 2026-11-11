@@ -32,6 +32,34 @@ uci -q commit wireless
 exit 0
 WIFIEOF
 echo "wifi defaults: QWRT2.4G/QWRT5G psk2 12345678"
+# 服务菜单排序 + Docker 改名（首启落地，刷机后不会回退）
+# 目标顺序：SSR Plus+ / HomeProxy / PassWall / mosdns / Docker / 带宽监控 / 网络唤醒Plus
+cat > ./package/base-files/files/etc/uci-defaults/97-menu-order << 'MENUEOF'
+#!/bin/sh
+[ -f /etc/wrt-menu-order.done ] && exit 0
+
+setfirst() {
+	f="$1"; old="$2"; new="$3"
+	[ -f "$f" ] || return 0
+	awk -v old="$old" -v new="$new" 'BEGIN{done=0} { if (!done && index($0, old) > 0) { sub(old, new); done=1 } print }' "$f" > "$f.wrt" && mv "$f.wrt" "$f"
+}
+
+L=/usr/share/luci/menu.d
+C=/usr/lib/lua/luci/controller
+setfirst "$L/luci-app-homeproxy.json" '"order": 10,' '"order": 20,'
+setfirst "$L/luci-app-mosdns.json"    '"order": 30,' '"order": 40,'
+setfirst "$L/luci-app-dockerman.json" '"title": "Dockerman JS"' '"title": "Docker"'
+setfirst "$L/luci-app-dockerman.json" '"order": "60",' '"order": 50,'
+setfirst "$L/luci-app-nlbwmon.json"   '"order": 80,' '"order": 60,'
+[ -f "$C/shadowsocksr.lua" ] && sed -i 's|_("ShadowSocksR Plus+"), 10)|_("ShadowsocksR Plus+"), 10)|' "$C/shadowsocksr.lua"
+[ -f "$C/passwall.lua" ] && sed -i 's|_("Pass Wall"), -1)|_("PassWall"), 30)|g' "$C/passwall.lua"
+[ -f "$C/wolplus.lua" ] && sed -i 's|_("wolplus"), 95)|_("WOL Plus"), 70)|' "$C/wolplus.lua"
+
+rm -rf /tmp/luci-indexcache* /tmp/luci-modulecache 2>/dev/null
+touch /etc/wrt-menu-order.done
+exit 0
+MENUEOF
+echo "menu order: services reordered, dockerman renamed to Docker"
 
 CFG_FILE="./package/base-files/files/bin/config_generate"
 #修改默认IP地址

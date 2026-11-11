@@ -183,3 +183,53 @@
 [data-page="admin-network-network"] table.cbi-section-table > tbody > tr > td.cbi-section-table-cell {
 	text-align: right !important;
 }
+/* ---------- SSR Plus+ 服务器节点列表：类型收窄、右侧按钮留间距 ----------
+   实测 1499 宽下：类型 281px（浪费）、端口 162px、操作列 343px 里 6 个按钮挤在一起。
+   表格头用 tr.cbi-section-table-titles（无 thead），所以按 tr 定位。 */
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table,
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table { /* ssr-nodes-fix */
+	table-layout: fixed !important;
+	width: 100% !important;
+	max-width: 100% !important;
+}
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table > tbody > tr > th,
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table > tbody > tr > td,
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table > tbody > tr > th,
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table > tbody > tr > td {
+	box-sizing: border-box !important;
+	overflow: visible !important;
+	padding: 6px 6px !important;
+	vertical-align: middle !important;
+}
+/* 列宽：类型 96 / 端口 92 / 连接测试 80 / Ping 90 / 应用 108 / 自动切换 80 / 操作 380 */
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table > tbody > tr > th:nth-child(1),
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table > tbody > tr > th:nth-child(1) { width: 96px !important; }
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table > tbody > tr > th:nth-child(3),
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table > tbody > tr > th:nth-child(3) { width: 92px !important; }
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table > tbody > tr > th:nth-child(4),
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table > tbody > tr > th:nth-child(4) { width: 80px !important; }
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table > tbody > tr > th:nth-child(5),
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table > tbody > tr > th:nth-child(5) { width: 90px !important; }
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table > tbody > tr > th:nth-child(6),
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table > tbody > tr > th:nth-child(6) { width: 108px !important; }
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table > tbody > tr > th:nth-child(7),
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table > tbody > tr > th:nth-child(7) { width: 80px !important; }
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table > tbody > tr > th:nth-last-child(1),
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table > tbody > tr > th:nth-last-child(1) { width: 380px !important; }
+/* 右侧按钮：不换行、逐个留 6px 间距，不再挤成一坨 */
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table td .node-wrapper,
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table td .node-wrapper {
+	display: flex !important;
+	flex-wrap: nowrap !important;
+	align-items: center !important;
+	justify-content: flex-end !important;
+	gap: 6px !important;
+}
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table td .node-wrapper > .btn,
+[data-page="admin-services-shadowsocksr-servers"] table.cbi-section-table td .node-wrapper > .cbi-button,
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table td .node-wrapper > .btn,
+[data-page="admin-services-shadowsocksr-client"] table.cbi-section-table td .node-wrapper > .cbi-button {
+	margin: 0 !important;
+	padding-left: 10px !important;
+	padding-right: 10px !important;
+}
