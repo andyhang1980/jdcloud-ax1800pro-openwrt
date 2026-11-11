@@ -35,19 +35,37 @@
 [data-page="admin-system-autoreboot"] table.cbi-section-table > thead > tr > th {
 	white-space: normal !important;
 }
-/* 列宽：启用 46px，小时/分钟各 110px，操作列 168px，其余均分 */
+/* 列宽：启用 46 / 星期 106 / 小时 92 / 分钟 92 / 月份 100 / 日 74 / 操作 168
+   星期与月份放长文案（星期日、十二月），小时/分钟只放两位数字所以收窄；
+   小时/分钟输入框再限一个 max-width，宽屏时也不会被拉得很宽。 */
 [data-page="admin-system-autoreboot"] table.cbi-section-table > thead > tr > th:nth-child(1) {
 	width: 46px !important;
 }
+[data-page="admin-system-autoreboot"] table.cbi-section-table > thead > tr > th:nth-child(2) {
+	width: 106px !important;
+}
 [data-page="admin-system-autoreboot"] table.cbi-section-table > thead > tr > th:nth-child(3),
 [data-page="admin-system-autoreboot"] table.cbi-section-table > thead > tr > th:nth-child(4) {
-	width: 110px !important;
+	width: 92px !important;
+}
+[data-page="admin-system-autoreboot"] table.cbi-section-table > thead > tr > th:nth-child(5) {
+	width: 100px !important;
+}
+[data-page="admin-system-autoreboot"] table.cbi-section-table > thead > tr > th:nth-child(6) {
+	width: 74px !important;
 }
 [data-page="admin-system-autoreboot"] table.cbi-section-table > thead > tr > th:nth-last-child(1) {
 	width: 168px !important;
 }
-[data-page="admin-system-autoreboot"] table.cbi-section-table > thead > tr > th:not(:nth-child(1)):not(:nth-child(3)):not(:nth-child(4)):not(:nth-last-child(1)) {
-	width: auto !important;
+/* 小时 / 分钟：输入框最多 88px，宽屏不跟着无限拉伸 */
+[data-page="admin-system-autoreboot"] table.cbi-section-table > tbody > tr > td:nth-child(3) input,
+[data-page="admin-system-autoreboot"] table.cbi-section-table > tbody > tr > td:nth-child(4) input {
+	max-width: 88px !important;
+}
+/* 星期 / 月份：下拉保证够放三个汉字 */
+[data-page="admin-system-autoreboot"] table.cbi-section-table > tbody > tr > td:nth-child(2) .cbi-dropdown,
+[data-page="admin-system-autoreboot"] table.cbi-section-table > tbody > tr > td:nth-child(5) .cbi-dropdown {
+	min-width: 88px !important;
 }
 [data-page="admin-system-autoreboot"] table.cbi-section-table > tbody > tr > td.cbi-section-table-cell {
 	white-space: nowrap !important;
