@@ -67,7 +67,7 @@ fi
 
 # 主题 CSS 补丁：定时重启页 6 列+操作列超宽被裁剪 → 固定布局收缩
 TCSS="./luci-theme-design/htdocs/luci-static/design/css/style.css"
-if [ -f "$TCSS" ] && ! grep -q 'WRT-AUTOREBOOT-FIX' "$TCSS"; then
+if [ -f "$TCSS" ] && ! grep -q 'WRT-AUTOREB' "$TCSS"; then
 	printf '\n' >> "$TCSS"
 	cat "$GITHUB_WORKSPACE/Scripts/patches/design-autoreboot-fix.css" >> "$TCSS"
 	echo "theme css: autoreboot table fix applied"
