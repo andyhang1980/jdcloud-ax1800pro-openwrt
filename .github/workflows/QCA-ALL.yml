@@ -28,7 +28,8 @@ jobs:
       matrix:
         # 只编译京东云亚瑟 AX1800 Pro（型号 RE-SS-01），闭源 QCA WiFi 驱动版本
         TARGET: [IPQ60XX-WIFI-YES]
-        SOURCE: [LiBwrt/openwrt-6.x]
+        # 使用自己 fork 出来的 QWRT 源码仓库（已内置品牌/菜单/WiFi/主题 CSS/Dockerman 定制）
+        SOURCE: [andyhang1980/LibWrt]
         # 25.12-nss = 带网络层 NSS 加速的分支（6.12 内核）
         BRANCH: [25.12-nss]
 
