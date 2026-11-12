@@ -13,7 +13,7 @@ sed -i "s/\.ssid=.*/\.ssid=$WRT_WIFI/g" $(find ./package/kernel/mac80211/ ./pack
 mkdir -p ./package/base-files/files/etc/uci-defaults
 cat > ./package/base-files/files/etc/uci-defaults/99-wifi-defaults << 'WIFIEOF'
 #!/bin/sh
-[ -f /etc/config/wireless ] || wifi config >/dev/null 2>&1
+[ -f /etc/config/wireless ] || timeout 15 wifi config >/dev/null 2>&1 || true
 n=0
 while uci -q get "wireless.@wifi-iface[$n]" >/dev/null 2>&1; do
 	dev=$(uci -q get "wireless.@wifi-iface[$n].device")
@@ -72,7 +72,8 @@ if [ -f /etc/config/uhttpd ]; then
 fi
 # 旧证书按旧 CN 生成，删掉让 uhttpd 用 QWRT 重新自签
 rm -f /etc/uhttpd.crt /etc/uhttpd.key
-/etc/init.d/uhttpd restart >/dev/null 2>&1
+# 已移除 uhttpd restart: 早期启动缺熵会阻塞，网络起不来
+# uhttpd 下次正常启动时自动用新 CN 重新自签
 touch /etc/wrt-brand.done
 exit 0
 BRANDEOF
