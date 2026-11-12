@@ -76,7 +76,8 @@ if [ -f "$SP_FILE" ]; then
 	cd $PKG_PATCH && echo "ssr-plus has been fixed!"
 fi
 
-# CBI 表单改动自动"保存并应用"（WRT 定制：改完即生效，右上角不再挂着"未保存"等手动点）
+# CBI 表单：改动先暂存，点"保存"后自动接着"应用"（一次点击写进配置并生效）
+# v1 是 change 即自动保存，且 WiFi 改密码/SSID 不触发；v2 已改为手动保存 + 自动应用
 AA_JS="$GITHUB_WORKSPACE/Scripts/patches/auto-apply.js"
 CBJS=$(find ../feeds/luci -path '*luci-base/htdocs/luci-static/resources/cbi.js' 2>/dev/null | head -1)
 if [ -f "$AA_JS" ] && [ -n "$CBJS" ] && [ -f "$CBJS" ]; then
