@@ -98,6 +98,16 @@ rm -f /etc/uhttpd.crt /etc/uhttpd.key 2>/dev/null
 touch /etc/wrt-brand.done
 exit 0
 BRANDEOF
+
+# === 默认 root 密码 = password (出厂即带，LuCI 不再提示"未设置密码") ===
+SH=./package/base-files/files/etc/shadow
+if [ -f "$SH" ]; then
+	# 空密码 root::: -> 带哈希; 已有密码则跳过
+	if grep -q "^root:::" "$SH"; then
+		sed -i 's|^root:::|root:$5$a18LB5uIm0l1ZTqh$ElmBgO88pp6EUvah0RZCJdUOqXA/GVL//2agVZ8tS0A:20769:|' "$SH"
+		echo "[Settings] default root password set to: password"
+	fi
+fi
 echo "brand: LibWrt -> QWRT (os-release/device_info/uhttpd CN)"
 
 # 构建树里能顺手改的直接改（找不到也不报错）
