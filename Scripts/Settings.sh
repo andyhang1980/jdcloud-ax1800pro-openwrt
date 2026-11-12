@@ -64,16 +64,37 @@ echo "menu order: services reordered, dockerman renamed to Docker"
 cat > ./package/base-files/files/etc/uci-defaults/96-brand-release << 'BRANDEOF'
 #!/bin/sh
 [ -f /etc/wrt-brand.done ] && exit 0
+
+# 1) /usr/lib/os-release: LibWrt -> QWRT
 OSR=/usr/lib/os-release
-[ -f "$OSR" ] && sed -i 's/LibWrt/QWRT/g; s/^ID=.*/ID="qwrt"/' "$OSR"
-[ -f /etc/device_info ] && sed -i 's/LibWrt/QWRT/g' /etc/device_info
+if [ -f "$OSR" ]; then
+	sed -i 's/LibWrt/QWRT/g; s/ImmortalWrt/QWRT/g; s/^ID=.*/ID="qwrt"/' "$OSR"
+	sed -i 's|https://immortalwrt.org/|https://github.com/andyhang1980/jdcloud-ax1800pro-openwrt|g' "$OSR"
+	sed -i 's|https://github.com/immortalwrt/immortalwrt|https://github.com/andyhang1980/jdcloud-ax1800pro-openwrt|g' "$OSR"
+	sed -i 's|https://downloads.immortalwrt.org/|https://github.com/andyhang1980/jdcloud-ax1800pro-openwrt/releases|g' "$OSR"
+	sed -i 's|^OPENWRT_DEVICE_PRODUCT=.*|OPENWRT_DEVICE_PRODUCT="JDCloud RE-SS-01"|' "$OSR"
+fi
+
+# 2) /etc/os-release: 构建时是未替换的 %D %V 模板，直接用正确的 /usr/lib/os-release 覆盖
+[ -f "$OSR" ] && cp "$OSR" /etc/os-release
+
+# 3) /etc/openwrt_release: DISTRIB_ID / DESCRIPTION 统一为 QWRT
+if [ -f /etc/openwrt_release ]; then
+	sed -i "s/^DISTRIB_ID=.*/DISTRIB_ID='QWRT'/" /etc/openwrt_release
+	sed -i "s/^DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION='QWRT SNAPSHOT'/" /etc/openwrt_release
+fi
+
+# 4) device_info
+[ -f /etc/device_info ] && sed -i 's/LibWrt/QWRT/g; s/ImmortalWrt/QWRT/g' /etc/device_info
+
+# 5) uhttpd CN (不重启服务，避免早期启动缺熵阻塞)
 if [ -f /etc/config/uhttpd ]; then
 	sed -i "s/option commonname 'LibWrt'/option commonname 'QWRT'/" /etc/config/uhttpd
+	sed -i "s/option commonname 'ImmortalWrt'/option commonname 'QWRT'/" /etc/config/uhttpd
 fi
-# 旧证书按旧 CN 生成，删掉让 uhttpd 用 QWRT 重新自签
-rm -f /etc/uhttpd.crt /etc/uhttpd.key
-# 已移除 uhttpd restart: 早期启动缺熵会阻塞，网络起不来
-# uhttpd 下次正常启动时自动用新 CN 重新自签
+# 只删旧证书，uhttpd 下次正常启动时自动用新 CN 重新自签
+rm -f /etc/uhttpd.crt /etc/uhttpd.key 2>/dev/null
+
 touch /etc/wrt-brand.done
 exit 0
 BRANDEOF
