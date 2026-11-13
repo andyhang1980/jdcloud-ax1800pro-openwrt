@@ -109,7 +109,7 @@ if [ -f /etc/openwrt_release ]; then
 fi
 
 # 4) device_info
-[ -f /etc/device_info ] && sed -i 's/LibWrt/QWRT/g; s/ImmortalWrt/QWRT/g' /etc/device_info
+[ -f /etc/device_info ] && sed -i 's/LibWrt/QWRT/g; s/ImmortalWrt/QWRT/g; s|https://immortalwrt.org/|https://github.com/andyhang1980/jdcloud-ax1800pro-openwrt|g' /etc/device_info
 
 # 5) uhttpd CN (不重启服务，避免早期启动缺熵阻塞)
 if [ -f /etc/config/uhttpd ]; then
