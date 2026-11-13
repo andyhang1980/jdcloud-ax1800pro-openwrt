@@ -170,30 +170,27 @@ jobs:
           $GITHUB_WORKSPACE/Scripts/Handles.sh
 
           # Rust 工具链从源码编译时会去 Rust CI 下载 LLVM 构件（ci-artifacts.rust-lang.org），
-          # 官方 CI 产物过期被删 -> 404 -> package/feeds/packages/rust [host] failed to build。
-          # 实测：configure 阶段从未执行（日志里没有 configure.py 打印的 "Configure the build"），
-          # 所以 Makefile 里 HOST_CONFIGURE_ARGS 的 --set=llvm.download-ci-llvm=false 从未生效，
-          # x.py 自动创建默认 bootstrap.toml 就去下载已删除的 CI 构件。
-          # 对策：直接预置 bootstrap.toml，声明 download-ci-llvm=false（Rust 官方给的修复），
-          #       改为本地构建 LLVM，不再依赖会过期的 CI 产物。
+          # 官方 CI 产物过期被删 -> 404 -> rust 编译挂。
+          # 实测根因：configure 阶段从未执行（日志无 configure.py 的 "Configure the build" 标记），
+          # 于是 (a) HOST_CONFIGURE_ARGS 的 --set=llvm.download-ci-llvm=false 从未生效 -> 404；
+          #       (b) --target=$(RUSTC_TARGET_ARCH) 从未传给 x.py -> 只编了 host(x86_64) std，
+          #           没有 aarch64 目标 std -> shadowsocks-rust 报 "can't find crate for core"。
+          # 对策：在 x.py 之前，于【源码目录】真正跑一次 configure（写 bootstrap.toml，含目标配置），
+          #       再把 bootstrap.toml 拷回包目录（x.py 的 cwd），并用 rust-llvm-fix.sh 兜底禁用 CI LLVM。
+          #       注意：绝不能在包目录直接跑 configure，它会覆盖 OpenWrt 的 Makefile。
           RUST_PKG_DIR=$(find ../feeds -path '*lang/rust' -type d 2>/dev/null | head -1)
-          if [ -n "$RUST_PKG_DIR" ]; then
-            sh "$GITHUB_WORKSPACE/Scripts/rust-llvm-fix.sh" "$RUST_PKG_DIR/bootstrap.toml"
-          fi
-          # 若 x.py 按自身位置（源码目录）查找 bootstrap.toml，则在 x.py 之前补建一次。
-          # 源码目录此时还没解包，所以要把这句注入 Host/Compile。
           RUST_MK=$(find ../feeds -path '*lang/rust/Makefile' 2>/dev/null | head -1)
           if [ -n "$RUST_MK" ] && ! grep -q 'rust-llvm-fix.sh' "$RUST_MK"; then
             cat > /tmp/rustfix.awk <<'AWK_EOF'
           /define Host\/Compile/ { inblock = 1 }
           inblock && /x\.py/ && !done {
-            printf "\tsh $${GITHUB_WORKSPACE}/Scripts/rust-llvm-fix.sh $(HOST_BUILD_DIR)/bootstrap.toml ; \\\n"
+            printf "\trm -f $(HOST_BUILD_DIR)/bootstrap.toml bootstrap.toml ; ( cd $(HOST_BUILD_DIR) && ./configure $(HOST_CONFIGURE_ARGS) ) ; cp -f $(HOST_BUILD_DIR)/bootstrap.toml bootstrap.toml ; sh $${GITHUB_WORKSPACE}/Scripts/rust-llvm-fix.sh bootstrap.toml ; \\\n"
             done = 1
           }
           { print }
           AWK_EOF
             awk -f /tmp/rustfix.awk "$RUST_MK" > "$RUST_MK.new" && mv "$RUST_MK.new" "$RUST_MK"
-            echo "rust Makefile patched: rust-llvm-fix.sh injected before x.py"
+            echo "rust Makefile patched: configure+bootstrap.toml injected before x.py"
           fi
 
       - name: Custom Settings
