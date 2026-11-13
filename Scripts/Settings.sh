@@ -32,6 +32,30 @@ uci -q commit wireless
 exit 0
 WIFIEOF
 echo "wifi defaults: QWRT2.4G/QWRT5G psk2 12345678"
+# WiFi 默认设置改用 init 脚本：uci-defaults 在 boot 早期（wifi 服务启动前）执行，
+# 改的配置会被后续 wifi 启动覆盖回构建默认值；init 脚本 START=99 在 wifi 之后执行，确保生效。
+cat > ./package/base-files/files/etc/init.d/qwrt-wifi-defaults << 'WIFIEOF'
+#!/bin/sh /etc/rc.common
+START=99
+REQUIRES="wifi"
+[ -f /etc/wrt-wifi.done ] && exit 0
+start() {
+	i=0
+	while [ $i -lt 4 ]; do
+		dev=$(uci -q get wireless.@wifi-iface[$i].device)
+		[ -n "$dev" ] || break
+		band=$(uci -q get wireless.$dev.band)
+		if [ "$band" = "5g" ]; then ssid="QWRT5G"; elif [ "$band" = "2g" ]; then ssid="QWRT2.4G"; else ssid="QWRT"; fi
+		uci -q set wireless.@wifi-iface[$i].ssid="$ssid"
+		uci -q set wireless.@wifi-iface[$i].encryption="psk2"
+		uci -q set wireless.@wifi-iface[$i].key="12345678"
+		i=$((i+1))
+	done
+	uci -q commit wireless
+	touch /etc/wrt-wifi.done
+}
+WIFIEOF
+echo "wifi init script written"
 # 服务菜单排序 + Docker 改名（首启落地，刷机后不会回退）
 # 目标顺序：SSR Plus+ / HomeProxy / PassWall / mosdns / Docker / 带宽监控 / 网络唤醒Plus
 cat > ./package/base-files/files/etc/uci-defaults/97-menu-order << 'MENUEOF'
