@@ -170,18 +170,30 @@ jobs:
           $GITHUB_WORKSPACE/Scripts/Handles.sh
 
           # Rust 工具链从源码编译时会去 Rust CI 下载 LLVM 构件（ci-artifacts.rust-lang.org），
-          # 官方 CI 产物过期后返回 404，导致编译必挂。configure 阶段虽设了
-          # llvm.download-ci-llvm=false，但 Host/Compile 直接跑 x.py dist 会跳过 configure，
-          # 由 x.py 自动生成 bootstrap.toml 时又回到默认的"下载 CI LLVM"。
-          # 直接改 x.py 调用行：去掉 llvm-tools（它依赖下载 LLVM，固件用不到），
-          # 并在 --build-dir 行后追加 --set llvm.download-ci-llvm=false，确保全程不下载 LLVM。
+          # 官方 CI 产物过期被删 -> 404 -> package/feeds/packages/rust [host] failed to build。
+          # 实测：configure 阶段从未执行（日志里没有 configure.py 打印的 "Configure the build"），
+          # 所以 Makefile 里 HOST_CONFIGURE_ARGS 的 --set=llvm.download-ci-llvm=false 从未生效，
+          # x.py 自动创建默认 bootstrap.toml 就去下载已删除的 CI 构件。
+          # 对策：直接预置 bootstrap.toml，声明 download-ci-llvm=false（Rust 官方给的修复），
+          #       改为本地构建 LLVM，不再依赖会过期的 CI 产物。
+          RUST_PKG_DIR=$(find ../feeds -path '*lang/rust' -type d 2>/dev/null | head -1)
+          if [ -n "$RUST_PKG_DIR" ]; then
+            sh "$GITHUB_WORKSPACE/Scripts/rust-llvm-fix.sh" "$RUST_PKG_DIR/bootstrap.toml"
+          fi
+          # 若 x.py 按自身位置（源码目录）查找 bootstrap.toml，则在 x.py 之前补建一次。
+          # 源码目录此时还没解包，所以要把这句注入 Host/Compile。
           RUST_MK=$(find ../feeds -path '*lang/rust/Makefile' 2>/dev/null | head -1)
-          if [ -n "$RUST_MK" ] && ! grep -q 'download-ci-llvm=false' "$RUST_MK"; then
-            sed -i 's|dist build-manifest rustc rust-std cargo llvm-tools rust-src|dist build-manifest rustc rust-std cargo rust-src|' "$RUST_MK"
-            sed -i '/--build-dir $(HOST_BUILD_DIR)\/build \\/a\\\t\t--set llvm.download-ci-llvm=false \\' "$RUST_MK"
-            echo "rust Makefile patched: llvm.download-ci-llvm=false injected"
-          else
-            echo "rust Makefile already patched or not found"
+          if [ -n "$RUST_MK" ] && ! grep -q 'rust-llvm-fix.sh' "$RUST_MK"; then
+            cat > /tmp/rustfix.awk <<'AWK_EOF'
+          /define Host\/Compile/ { inblock = 1 }
+          inblock && /x\.py/ && !done {
+            printf "\tsh $${GITHUB_WORKSPACE}/Scripts/rust-llvm-fix.sh $(HOST_BUILD_DIR)/bootstrap.toml ; \\\n"
+            done = 1
+          }
+          { print }
+          AWK_EOF
+            awk -f /tmp/rustfix.awk "$RUST_MK" > "$RUST_MK.new" && mv "$RUST_MK.new" "$RUST_MK"
+            echo "rust Makefile patched: rust-llvm-fix.sh injected before x.py"
           fi
 
       - name: Custom Settings
