@@ -169,6 +169,21 @@ jobs:
           $GITHUB_WORKSPACE/Scripts/Packages.sh
           $GITHUB_WORKSPACE/Scripts/Handles.sh
 
+          # Rust 工具链从源码编译时会去 Rust CI 下载 LLVM 构件（ci-artifacts.rust-lang.org），
+          # 官方 CI 产物过期后返回 404，导致编译必挂。configure 阶段虽设了
+          # llvm.download-ci-llvm=false，但 Host/Compile 直接跑 x.py dist 会跳过 configure，
+          # 由 x.py 自动生成 bootstrap.toml 时又回到默认的"下载 CI LLVM"。
+          # 直接改 x.py 调用行：去掉 llvm-tools（它依赖下载 LLVM，固件用不到），
+          # 并在 --build-dir 行后追加 --set llvm.download-ci-llvm=false，确保全程不下载 LLVM。
+          RUST_MK=$(find ../feeds -path '*lang/rust/Makefile' 2>/dev/null | head -1)
+          if [ -n "$RUST_MK" ] && ! grep -q 'download-ci-llvm=false' "$RUST_MK"; then
+            sed -i 's|dist build-manifest rustc rust-std cargo llvm-tools rust-src|dist build-manifest rustc rust-std cargo rust-src|' "$RUST_MK"
+            sed -i '/--build-dir $(HOST_BUILD_DIR)\/build \\/a\\\t\t--set llvm.download-ci-llvm=false \\' "$RUST_MK"
+            echo "rust Makefile patched: llvm.download-ci-llvm=false injected"
+          else
+            echo "rust Makefile already patched or not found"
+          fi
+
       - name: Custom Settings
         run: |
           cd ./wrt/
